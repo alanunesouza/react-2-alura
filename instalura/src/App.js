@@ -7,12 +7,16 @@ class App extends Component {
     return (
       <div id="root">
         <div className="main">
-          <Header/>
-          <TimeLine login={this.props.params.login}/>
+          <Header store={this.context.store}/>
+          <TimeLine login={this.props.params.login} store={this.context.store}/>
          </div>
        </div>
     );
   }
+}
+
+App.contextTypes = {
+  store : React.PropTypes.object.isRequired
 }
 
 export default App;

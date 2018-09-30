@@ -1,44 +1,34 @@
 import React, { Component } from 'react';
 import Foto from './Foto';
-import Pubsub from 'pubsub-js';
 import ReactCSSTransitionGroup from 'react/lib/ReactCSSTransitionGroup';
+import TimelineApi from '../logicas/TimelineApi';
+import {connect} from 'react-redux';
 
-export default class Timeline extends Component {
+class Timeline extends Component{
 
-  constructor(props) {
+  constructor(props){
     super(props);
-    this.state = { fotos: [] };
     this.login = this.props.login;
   }
 
-  componentWillMount(){
-    Pubsub.subscribe('timeline',(topico,fotos) => {
-     this.setState({ fotos });
-    })
-  }
-
-  carregaFotos(props) {
+  carregaFotos(props){
     let urlPerfil;
 
-    if (this.login === undefined) {
+    if (this.login === undefined){
       urlPerfil = `https://instalura-api.herokuapp.com/api/fotos?X-AUTH-TOKEN=${localStorage.getItem('auth-token')}`;
-    } else {
+    } else{
       urlPerfil = `https://instalura-api.herokuapp.com/api/public/fotos/${this.login}`;
     }
 
-    fetch(urlPerfil)
-      .then(response => response.json())
-      .then(fotos => {
-        this.setState({ fotos });
-      });
+    this.props.lista(urlPerfil);
   }
 
-  componentDidMount() {
+  componentDidMount(){
     this.carregaFotos();
   }
 
-  componentWillReceiveProps(nextProps) {
-    if(nextProps.login !== undefined) {
+  componentWillReceiveProps(nextProps){
+    if(nextProps.login !== this.login){
       this.login = nextProps.login;
       this.carregaFotos();
     }
@@ -53,10 +43,32 @@ export default class Timeline extends Component {
           transitionLeaveTimeout={300}
         >
             {
-              this.state.fotos.map(foto => <Foto key={foto.id} foto={foto}/>)
+              this.props.fotos.map(foto => <Foto key={foto.id} foto={foto} like={this.props.like} comenta={this.props.comenta}/>)
             }
         </ReactCSSTransitionGroup>
       </div>
       );
   }
 }
+
+const mapStateToProps = state => {
+  return {fotos : state.timeline}
+}
+
+const mapDispatchToProps = dispatch => {
+  return {
+    like : (fotoId) => {
+      dispatch(TimelineApi.like(fotoId));
+    },
+    comenta : (fotoId, textoComentario) => {
+      dispatch(TimelineApi.comenta(fotoId, textoComentario));
+    },
+    lista : (urlPerfil) => {
+      dispatch(TimelineApi.lista(urlPerfil));
+    }
+  }
+}
+
+const TimeLineContainer = connect(mapStateToProps, mapDispatchToProps)(Timeline);
+
+export default TimeLineContainer;

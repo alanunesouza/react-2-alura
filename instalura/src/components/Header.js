@@ -1,41 +1,50 @@
 import React, { Component } from 'react';
-import Pubsub from 'pubsub-js';
+import TimelineApi from '../logicas/TimelineApi';
 
 export default class Header extends Component {
 
-  pesquisa(event){
-   event.preventDefault();
+    constructor(){
+      super();
+      this.state = {msg:''};
+    }
 
-   fetch(`https://instalura-api.herokuapp.com/api/public/fotos/${this.loginPesquisado.value}`)
-    .then(response => response.json())
-    .then(fotos => {
-      Pubsub.publish('timeline', fotos);
-    });
-  }
+    componentDidMount(){
+      this.props.store.subscribe(() => {
+        this.setState({msg: this.props.store.getState().notificacao});
+      })
+    }
 
-  render() {
-    return (
-      <header class="header container">
-        <h1 class="header-logo">
-          Instalura
-        </h1>
+    pesquisa(event){
+      event.preventDefault();
+      this.props.store.dispatch(TimelineApi.pesquisa(this.loginPesquisado.value));
+    }
 
-        <form lpformnum="1" class="header-busca" onSubmit={this.pesquisa.bind(this)}>
-          <input type="text" name="search" placeholder="Pesquisa" class="header-busca-campo" ref={input => this.loginPesquisado = input}/>
-          <input type="submit" value="Buscar" class="header-busca-submit"/>
-        </form>
+    render(){
+        return (
+        <header className="header container">
+          <h1 className="header-logo">
+            Instalura
+          </h1>
+
+          <form className="header-busca" onSubmit={this.pesquisa.bind(this)}>
+            <input type="text" name="search" placeholder="Pesquisa" className="header-busca-campo" ref={input => this.loginPesquisado = input}/>
+            <input type="submit" value="Buscar" className="header-busca-submit"/>
+          </form>
 
 
-        <nav>
-          <ul class="header-nav">
-            <li class="header-nav-item">
-              <a href="#">
-                ♡
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </header>
-    )
-  }
+          <nav>
+            <ul className="header-nav">
+              <li className="header-nav-item">
+                <span>{this.state.msg}</span>
+                <a href="#">
+                  ♡
+                  {/*                 ♥ */}
+                  {/* Quem deu like nas minhas fotos */}
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </header>
+        );
+    }
 }
